@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useAxiosCommon from '../../hooks/useAxiosCommon';
-import Swal from 'sweetalert2'; // Import SweetAlert
+import Swal from 'sweetalert2';
 
 const Register = () => {
   const navigate = useNavigate();
@@ -16,7 +16,6 @@ const Register = () => {
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const handleTermsClick = () => {
-    // Handle terms and conditions click
     Swal.fire({
       icon: 'info',
       title: 'Terms and Conditions',

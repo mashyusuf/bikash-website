@@ -1,19 +1,19 @@
-import { useState } from 'react';
-import { FaEnvelope, FaKey, FaCheck } from 'react-icons/fa'; // Importing icons from React Icons
+import React, { useState } from 'react';
+import { FaEnvelope, FaKey, FaCheck } from 'react-icons/fa';
 import useAxiosCommon from '../../hooks/useAxiosCommon';
 import { useNavigate } from 'react-router-dom';
-import Swal from 'sweetalert2'; // Import SweetAlert
+import Swal from 'sweetalert2';
 
 const Login = () => {
   const navigate = useNavigate();
   const axiosCommon = useAxiosCommon();
   const [credential, setCredential] = useState('');
   const [pin, setPin] = useState('');
-  const [loading, setLoading] = useState(false); // State for loading spinner
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Start loading state
+    setLoading(true);
 
     try {
       const response = await axiosCommon.post('/login', {
@@ -21,110 +21,94 @@ const Login = () => {
         pin,
       });
 
-      const { token } = response.data;
-      localStorage.setItem('token', token);
-      Swal.fire({
-        icon: 'success',
-        title: 'Login successful!',
-        showConfirmButton: false,
-        timer: 1500 // Automatically close after 1.5 seconds
-      }).then(() => {
+      setLoading(false);
+
+      console.log('Login response:', response); // Check the response object in console
+
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
         navigate('/');
-      });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Login failed',
+          text: response.data.message || 'Invalid credentials',
+          confirmButtonText: 'OK',
+        });
+      }
     } catch (error) {
+      setLoading(false);
+      console.error('Error logging in:', error);
       Swal.fire({
         icon: 'error',
         title: 'Login failed',
-        text: error.response ? error.response.data : error.message,
-        confirmButtonText: 'Try again'
+        text: 'An error occurred while logging in. Please try again later.',
+        confirmButtonText: 'OK',
       });
-    } finally {
-      setLoading(false); // Reset loading state
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (name === 'credential') setCredential(value);
-    if (name === 'pin') setPin(value);
-  };
-
   return (
-    <div className="font-[sans-serif] bg-white">
-      <div className="grid lg:grid-cols-4 md:grid-cols-3 items-center">
-        <form className="lg:col-span-3 md:col-span-2 max-w-lg w-full p-6 mx-auto" onSubmit={handleSubmit}>
-          <div className="mb-12">
-            <h3 className="text-gray-800 text-4xl font-extrabold">Sign In</h3>
-            <p className="text-gray-800 text-sm mt-6 leading-relaxed">
-              Welcome back! Please log in to access your account and explore a world of possibilities. Your journey begins here.
-            </p>
-          </div>
-
-          <div className="relative flex items-center">
-            <label className="text-gray-800 text-[13px] bg-white absolute px-2 top-[-9px] left-[18px] font-semibold">
-              <FaEnvelope className="inline-block mr-2 text-blue-600" /> Email or Number
-            </label>
-            <input
-              type="text"
-              name="credential"
-              placeholder="Enter email or number"
-              value={credential}
-              onChange={handleChange}
-              className="px-4 py-3.5 bg-white w-full text-sm border-2 border-gray-200 focus:border-blue-600 rounded-md outline-none"
-            />
-          </div>
-
-          <div className="relative flex items-center mt-8">
-            <label className="text-gray-800 text-[13px] bg-white absolute px-2 top-[-9px] left-[18px] font-semibold">
-              <FaKey className="inline-block mr-2 text-blue-600" /> PIN
-            </label>
-            <input
-              type="password"
-              name="pin"
-              placeholder="Enter PIN"
-              value={pin}
-              onChange={handleChange}
-              className="px-4 py-3.5 bg-white w-full text-sm border-2 border-gray-200 focus:border-blue-600 rounded-md outline-none"
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center justify-between gap-4 mt-4">
-            <div className="flex items-center">
+    <div className="flex justify-center items-center min-h-screen bg-gray-200">
+      <div className="bg-white max-w-md w-full rounded-lg shadow-lg overflow-hidden">
+        <div className="p-8 md:p-12">
+          <h2 className="text-3xl font-extrabold mb-6 text-gray-800">Login to Your Account</h2>
+          <form onSubmit={handleSubmit}>
+            <div className="mb-6">
+              <label htmlFor="credential" className="block text-gray-800 text-sm mb-2">
+                <FaEnvelope className="inline-block mr-2" />
+                Email or Mobile Number
+              </label>
               <input
-                id="remember-me"
-                name="remember-me"
-                type="checkbox"
-                className="h-4 w-4 shrink-0 text-blue-600 focus:ring-blue-500 border-gray-300 rounded-md"
+                type="text"
+                id="credential"
+                className="bg-gray-100 w-full text-gray-800 text-sm px-4 py-3 rounded-md focus:outline-none focus:ring-indigo-500"
+                placeholder="Enter email or mobile number"
+                value={credential}
+                onChange={(e) => setCredential(e.target.value)}
+                required
               />
-              <label htmlFor="remember-me" className="ml-3 block text-sm text-gray-800">
+            </div>
+            <div className="mb-6">
+              <label htmlFor="pin" className="block text-gray-800 text-sm mb-2">
+                <FaKey className="inline-block mr-2" />
+                PIN
+              </label>
+              <input
+                type="password"
+                id="pin"
+                className="bg-gray-100 w-full text-gray-800 text-sm px-4 py-3 rounded-md focus:outline-none focus:ring-indigo-500"
+                placeholder="Enter your PIN"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                maxLength="5"
+                required
+              />
+            </div>
+            <div className="flex items-center mb-6">
+              <input
+                type="checkbox"
+                id="rememberMe"
+                className="h-4 w-4 rounded border-gray-300 text-indigo-500 focus:ring-indigo-500"
+              />
+              <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-800">
+                <FaCheck className="inline-block mr-1" />
                 Remember me
               </label>
             </div>
             <div>
-              <a href="#" className="text-blue-600 font-semibold text-sm hover:underline">
-                Forgot PIN?
-              </a>
+              <button
+                type="submit"
+                className={`w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+                  loading ? 'opacity-50 cursor-wait' : ''
+                }`}
+                disabled={loading}
+              >
+                {loading ? 'Logging in...' : 'Log In'}
+              </button>
             </div>
-          </div>
-
-          <div className="mt-12">
-            <button
-              type="submit"
-              className={`w-full shadow-xl py-2.5 px-4 text-sm tracking-wider font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none flex items-center justify-center ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              disabled={loading}
-            >
-              {loading ? (
-                <svg className="animate-spin h-4 w-4 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291l1.293 1.293a1 1 0 001.414 0L12 17.414l3.293 3.293a1 1 0 001.414-1.414L13.414 16l3.293-3.293a1 1 0 00-1.414-1.414L12 14.586l-3.293-3.293a1 1 0 00-1.414 1.414L10.586 16l-3.293 3.293a1 1 0 000 1.414z"></path>
-                </svg>
-              ) : (
-                <FaCheck className="inline-block mr-2" /> 
-              )}
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
